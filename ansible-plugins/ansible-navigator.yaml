@@ -1,0 +1,31 @@
+ansible-navigator:
+  ansible:
+    config: ./ansible.cfg
+    inventories:
+      - ./hosts 
+    playbook: playbook.yml 
+
+  execution-environment:
+    container-engine: auto
+    enabled: True
+    image: registry.redhat.io/ansible-automation-platform-21/ee-supported-rhel8 
+    pull-policy: missing  
+    environment-variables:
+      pass:
+        - GUID
+      set:
+        FOO: BAR
+
+  logging:
+    append: True
+    level: critical
+    file: "logs/ansible-navigator.log"
+
+  playbook-artifact:
+    enable: True
+    replay: "logs/{playbook_name}-artifact-{ts_utc}.json"
+    save-as: "logs/{playbook_name}-artifact-{ts_utc}.json"
+
+  mode: stdout 
+  
+  app: run  

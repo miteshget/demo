@@ -1,0 +1,11 @@
+---
+- name: Play for jinja2
+  hosts: localhost
+  tasks:
+    - name: Include vars
+      include_vars: vars.yml
+
+    - name: Convert Jinja2 template
+      template:
+        src: my_template.j2
+        dest: static_file

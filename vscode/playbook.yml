@@ -1,9 +1,80 @@
 ---
 - name: Play to set up vscode server
   hosts: localhost
+  become: true
+  vars:
+    user: "{{ lookup('env','USER') }}"
+    vscode_password: "{{ lookup('env','BASTION_PASSWORD') }}"
+    vscode_extension_url: "{{ lookup('env','VSCODE_URL')}}"
+    vscode_extension_names:
+      - bierner.markdown-preview-github-styles-0.1.6.vsix
+      - hnw.vscode-auto-open-markdown-preview-0.0.4.vsix
+      - vscoss.vscode-ansible-0.5.2.vsix
   tasks:
     - name: Install vscode
       dnf:
         name: https://github.com/cdr/code-server/releases/download/v4.0.2/code-server-4.0.2-amd64.rpm
-        disable_gpg_check: True
+        disable_gpg_check: true
         state: installed
+      notify: restart vscode
+
+    - name: start vscode
+      service:
+        name: code-server@{{ user }}
+        state: started
+        enabled: true
+
+    - name: Create auth file
+      copy:
+        content: |
+          bind-addr: "{{ansible_facts.eth0.ipv4.address}}:8080"
+          auth: password
+          password: "{{ vscode_password }}"
+          cert: false
+        dest: /home/{{ user }}/.config/code-server/config.yaml
+      notify: restart vscode
+
+    - name: Create directory
+      file:
+        path: "/home/{{ user }}/.local/share/code-server/{{ item }}"
+        state: directory
+      loop:
+        - extensions
+        - User
+
+    - name: Create settings file
+      copy:
+        content: |
+          {
+            "git.ignoreLegacyWarning": true,
+            "terminal.integrated.experimentalRefreshOnResume": true,
+            "window.menuBarVisibility": "visible",
+            "git.enableSmartCommit": true,
+            "workbench.tips.enabled": false,
+            "workbench.startupEditor": "readme",
+            "workbench.colorTheme": "Default Dark+"
+            "telemetry.enableTelemetry": false,
+            "search.smartCase": true,
+            "git.confirmSync": false
+          }
+        dest: "/home/{{ user }}/.local/share/code-server/User/settings.json"
+      notify: restart vscode
+
+    - name: Download extensions
+      get_url:
+        url: "{{ vscode_extension_url }}/{{ item }}"
+        dest:  "/home/{{ user }}/.local/share/code-server/extensions/{{ item }}"
+      loop: "{{ vscode_extension_names }}"
+
+    - name: Install vscode extenstion
+      command: /usr/bin/code-server --install-extension  "{{ item }}" 
+      loop: "{{ vscode_extension_names }}"
+      args:
+        chdir: "/home/{{ user }}/.local/share/code-server/extensions/"
+      notify: restart vscode
+
+  handlers:
+    - name: restart vscode
+      service:
+        name: code-server@{{ user }}
+        state: restarted

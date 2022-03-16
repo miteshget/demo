@@ -1,0 +1,9 @@
+---
+- name: Play to set up vscode server
+  hosts: localhost
+  tasks:
+    - name: Install vscode
+      dnf:
+        name: https://github.com/cdr/code-server/releases/download/v4.0.2/code-server-4.0.2-amd64.rpm
+        disable_gpg_check: True
+        state: installed

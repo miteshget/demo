@@ -6,7 +6,7 @@
     user: "{{ lookup('env','USER') }}"
     vscode_password: "{{ lookup('env','BASTION_PASSWORD') }}"
     vscode_extension_url: "{{ lookup('env','VSCODE_URL')}}"
-    vscode_extension_url: https://gpte-public.s3.amazonaws.com/vscode-plugins/
+    vscode_extension_url: https://gpte-public.s3.amazonaws.com/vscode-plugins
     vscode_extension_names:
       - bierner.markdown-preview-github-styles-0.1.6.vsix
       - hnw.vscode-auto-open-markdown-preview-0.0.4.vsix
